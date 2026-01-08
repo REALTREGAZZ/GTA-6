@@ -124,6 +124,19 @@ function loadCityModel() {
                         }
                     });
 
+                    cityModel.traverse((child) => {
+                        if (child.isMesh && child.name) {
+                            const childNameLower = child.name.toLowerCase();
+                            const carKeywords = ['car', 'truck', 'vehicle', 'auto', 'tire', 'rim', 'van', 'coche', 'carro'];
+                            const isCar = carKeywords.some(keyword => childNameLower.includes(keyword));
+                            
+                            if (isCar) {
+                                child.visible = false;
+                                console.log('Removed car/vehicle:', child.name);
+                            }
+                        }
+                    });
+
                     scene.add(cityModel);
 
                     const maxDim = Math.max(size.x, size.y, size.z);
