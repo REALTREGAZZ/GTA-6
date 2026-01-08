@@ -8,10 +8,17 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "keywords": ["threejs", "3d", "gta", "city", "webgl"],
+  "keywords": [
+    "threejs",
+    "3d",
+    "gta",
+    "city",
+    "webgl"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "stats.js": "^0.17.0",
     "three": "^0.160.0"
   },
   "devDependencies": {

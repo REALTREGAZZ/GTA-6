@@ -2,14 +2,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import Stats from 'stats.js';
 
-let scene, camera, renderer, controls;
+let scene, camera, renderer, controls, stats;
 let cityModel;
-let lastTime = performance.now();
-let frameCount = 0;
-let fps = 0;
+let clock = new THREE.Clock();
 
-const moveSpeed = 50;
+const moveSpeed = 100;
 const keys = {
     w: false,
     a: false,
@@ -24,16 +23,15 @@ function init() {
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
-    scene.fog = new THREE.Fog(0x87CEEB, 500, 3000);
+    scene.fog = new THREE.Fog(0x87CEEB, 1000, 5000);
 
     camera = new THREE.PerspectiveCamera(
         75,
         window.innerWidth / window.innerHeight,
-        0.1,
-        5000
+        1,
+        10000
     );
     camera.position.set(500, 300, 500);
-    camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -42,38 +40,41 @@ function init() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
+    stats = new Stats();
+    stats.showPanel(0);
+    stats.dom.style.position = 'absolute';
+    stats.dom.style.top = '10px';
+    stats.dom.style.right = '10px';
+    stats.dom.style.left = 'auto';
+    document.body.appendChild(stats.dom);
+
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = true;
     controls.minDistance = 10;
-    controls.maxDistance = 2000;
-    controls.maxPolarAngle = Math.PI / 2;
+    controls.maxDistance = 4000;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(500, 1000, 500);
+    directionalLight.position.set(1000, 2000, 1000);
     directionalLight.castShadow = true;
-    directionalLight.shadow.camera.left = -1000;
-    directionalLight.shadow.camera.right = 1000;
-    directionalLight.shadow.camera.top = 1000;
-    directionalLight.shadow.camera.bottom = -1000;
-    directionalLight.shadow.camera.far = 2000;
+    directionalLight.shadow.camera.left = -2000;
+    directionalLight.shadow.camera.right = 2000;
+    directionalLight.shadow.camera.top = 2000;
+    directionalLight.shadow.camera.bottom = -2000;
+    directionalLight.shadow.camera.far = 5000;
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
 
-    const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x545454, 0.4);
+    const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x545454, 0.5);
     scene.add(hemisphereLight);
 
-    const gridHelper = new THREE.GridHelper(2000, 50, 0x666666, 0x333333);
-    gridHelper.position.y = 0;
+    const gridHelper = new THREE.GridHelper(5000, 100, 0x666666, 0x333333);
     scene.add(gridHelper);
-
-    const axesHelper = new THREE.AxesHelper(100);
-    scene.add(axesHelper);
 
     loadCityModel();
 
@@ -117,7 +118,6 @@ function loadCityModel() {
                         if (child.isMesh) {
                             child.castShadow = true;
                             child.receiveShadow = true;
-                            
                             if (child.material) {
                                 child.material.side = THREE.FrontSide;
                             }
@@ -128,39 +128,36 @@ function loadCityModel() {
 
                     const maxDim = Math.max(size.x, size.y, size.z);
                     const fov = camera.fov * (Math.PI / 180);
-                    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-                    cameraZ *= 1.5;
+                    let cameraDistance = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+                    cameraDistance *= 1.2;
 
-                    camera.position.set(cameraZ * 0.8, cameraZ * 0.5, cameraZ * 0.8);
-                    camera.lookAt(0, size.y / 3, 0);
-                    controls.target.set(0, size.y / 3, 0);
+                    camera.position.set(cameraDistance, cameraDistance * 0.6, cameraDistance);
+                    camera.lookAt(0, 0, 0);
+                    controls.target.set(0, 0, 0);
                     controls.update();
 
                     loadingElement.classList.add('hidden');
                     document.getElementById('info').classList.remove('hidden');
 
-                    console.log('Ciudad cargada!');
-                    console.log('Tamaño:', size);
-                    console.log('Centro:', center);
+                    console.log('Ciudad cargada!', { size, center });
                 },
                 (xhr) => {
-                    const percentComplete = (xhr.loaded / xhr.total) * 100;
-                    progressBar.style.width = percentComplete + '%';
-                    loadingText.textContent = Math.round(percentComplete) + '%';
-                    console.log('Cargando modelo: ' + Math.round(percentComplete) + '%');
+                    if (xhr.lengthComputable) {
+                        const percentComplete = (xhr.loaded / xhr.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                        loadingText.textContent = Math.round(percentComplete) + '%';
+                    }
                 },
                 (error) => {
                     console.error('Error cargando el modelo OBJ:', error);
-                    loadingElement.innerHTML = '<div style="color: red;">Error cargando el modelo. Por favor revise la consola.</div>';
+                    loadingElement.innerHTML = '<div style="color: red;">Error cargando el modelo. Revisa la consola.</div>';
                 }
             );
         },
-        (xhr) => {
-            console.log('Cargando materiales: ' + Math.round((xhr.loaded / xhr.total) * 100) + '%');
-        },
+        null,
         (error) => {
             console.error('Error cargando materiales:', error);
-            loadingElement.innerHTML = '<div style="color: red;">Error cargando materiales. Por favor revise la consola.</div>';
+            loadingElement.innerHTML = '<div style="color: red;">Error cargando materiales. Revisa la consola.</div>';
         }
     );
 }
@@ -228,28 +225,17 @@ function updateCameraMovement(delta) {
     }
 }
 
-function updateFPS() {
-    frameCount++;
-    const currentTime = performance.now();
-    
-    if (currentTime >= lastTime + 1000) {
-        fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
-        document.getElementById('fps').textContent = fps;
-        frameCount = 0;
-        lastTime = currentTime;
-    }
-}
-
 function animate() {
     requestAnimationFrame(animate);
-
-    const delta = 0.016;
     
+    stats.begin();
+    
+    const delta = clock.getDelta();
     updateCameraMovement(delta);
     controls.update();
-    updateFPS();
-    
     renderer.render(scene, camera);
+    
+    stats.end();
 }
 
 init();

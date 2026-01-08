@@ -6,7 +6,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/snd2_01.jpg
+map_Kd Maps/snd2_01.jpg
 
 newmtl default_interior_land
 d 1
@@ -16,7 +16,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/dm1.jpg
+map_Kd Maps/dm1.jpg
 
 newmtl default_road
 d 1
@@ -44,7 +44,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/ac2.jpg
+map_Kd Maps/ac2.jpg
 
 newmtl default_roof
 d 1
@@ -54,7 +54,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/roofti8.jpg
+map_Kd Maps/roofti8.jpg
 
 newmtl default_country_club_house
 d 1
@@ -64,7 +64,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/fac_151.jpg
+map_Kd Maps/fac_151.jpg
 
 newmtl default_town_roofs
 d 1
@@ -74,7 +74,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/sx1.jpg
+map_Kd Maps/sx1.jpg
 
 newmtl default_town_walls
 d 1
@@ -84,7 +84,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/g1.jpg
+map_Kd Maps/g1.jpg
 
 newmtl default_house_complex
 d 1
@@ -94,7 +94,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/sf1c.jpg
+map_Kd Maps/sf1c.jpg
 
 newmtl default_bldgs_dowtown
 d 1
@@ -104,7 +104,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/fac_231.jpg
+map_Kd Maps/fac_231.jpg
 
 newmtl default_station.mult
 d 1
@@ -132,7 +132,7 @@ Ka 1 1 1
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/sxa1.jpg
+map_Kd Maps/sxa1.jpg
 
 newmtl default_floor_mult
 d 1
@@ -142,7 +142,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/antenna.jpg
+map_Kd Maps/antenna.jpg
 
 newmtl default_s1
 d 1
@@ -152,7 +152,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/Pepsi_Commercial_by_mindfuckx.jpg
+map_Kd Maps/Pepsi_Commercial_by_mindfuckx.jpg
 
 newmtl default_s1_fedex
 d 1
@@ -162,7 +162,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/fx1.jpg
+map_Kd Maps/fx1.jpg
 
 newmtl default_s1_cocacola
 d 1
@@ -172,7 +172,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/dk1.jpg
+map_Kd Maps/dk1.jpg
 
 newmtl default_s1_sprite
 d 1
@@ -182,7 +182,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/logo_sprite-794746.jpg
+map_Kd Maps/logo_sprite-794746.jpg
 
 newmtl default_s1_uhaul
 d 1
@@ -192,7 +192,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/ct1_02.jpg
+map_Kd Maps/ct1_02.jpg
 
 newmtl default_rims_mult3
 d 1
@@ -229,7 +229,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/dmq1c2.jpg
+map_Kd Maps/dmq1c2.jpg
 
 newmtl default_wall2
 d 1
@@ -239,7 +239,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/dmq1c2.jpg
+map_Kd Maps/dmq1c2.jpg
 
 newmtl default_bldg
 d 1
@@ -249,7 +249,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/antenna.jpg
+map_Kd Maps/antenna.jpg
 
 newmtl default_parking
 d 1
@@ -259,7 +259,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/pe1b2.jpg
+map_Kd Maps/pe1b2.jpg
 
 newmtl default_roof_flat
 d 1
@@ -269,7 +269,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/sx1.jpg
+map_Kd Maps/sx1.jpg
 
 newmtl default_roof_shopping_center
 d 1
@@ -279,7 +279,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd /Maps/rf2.jpg
+map_Kd Maps/rf2.jpg
 
 newmtl default_windows
 d 1
