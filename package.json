@@ -1,0 +1,20 @@
+{
+  "name": "threejs-gta-city-map",
+  "version": "1.0.0",
+  "description": "3D GTA-style city map using Three.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["threejs", "3d", "gta", "city", "webgl"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

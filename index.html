@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA City Map - Three.js</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            z-index: 100;
+        }
+
+        #loading-bar {
+            width: 300px;
+            height: 30px;
+            border: 2px solid white;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        #loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 10;
+        }
+
+        #stats {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 10;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="loading">
+        <div>Cargando Ciudad...</div>
+        <div id="loading-bar">
+            <div id="loading-progress"></div>
+        </div>
+        <div id="loading-text">0%</div>
+    </div>
+
+    <div id="info" class="hidden">
+        <strong>Controles:</strong><br>
+        - Click izquierdo + arrastrar: Rotar<br>
+        - Click derecho + arrastrar: Mover<br>
+        - Rueda del mouse: Zoom<br>
+        - W/A/S/D: Mover cámara<br>
+        - Espacio: Subir<br>
+        - Shift: Bajar
+    </div>
+
+    <div id="stats">
+        FPS: <span id="fps">0</span>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
