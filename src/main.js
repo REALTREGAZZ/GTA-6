@@ -1,11 +1,10 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { USDZLoader } from 'three/examples/jsm/loaders/USDZLoader.js';
 import Stats from 'stats.js';
 
-let scene, camera, renderer, controls, stats;
+let scene, camera, renderer, stats;
 let cityModel;
 let clock = new THREE.Clock();
 
@@ -68,13 +67,6 @@ function init() {
     stats.dom.style.right = '10px';
     stats.dom.style.left = 'auto';
     document.body.appendChild(stats.dom);
-
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = true;
-    controls.minDistance = 10;
-    controls.maxDistance = 4000;
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
@@ -167,8 +159,6 @@ function loadCityModel() {
 
                     camera.position.set(cameraDistance, cameraDistance * 0.6, cameraDistance);
                     camera.lookAt(0, 0, 0);
-                    controls.target.set(0, 0, 0);
-                    controls.update();
 
                     loadCaveCharacter();
 
@@ -381,43 +371,6 @@ function onKeyUp(event) {
     if (!event.shiftKey && key !== 'shift') keys.shift = false;
 }
 
-function updateCameraMovement(delta) {
-    const moveDistance = moveSpeed * delta;
-
-    const forward = new THREE.Vector3();
-    camera.getWorldDirection(forward);
-    forward.y = 0;
-    forward.normalize();
-
-    const right = new THREE.Vector3();
-    right.crossVectors(forward, camera.up).normalize();
-
-    if (keys.w) {
-        camera.position.addScaledVector(forward, moveDistance);
-        controls.target.addScaledVector(forward, moveDistance);
-    }
-    if (keys.s) {
-        camera.position.addScaledVector(forward, -moveDistance);
-        controls.target.addScaledVector(forward, -moveDistance);
-    }
-    if (keys.a) {
-        camera.position.addScaledVector(right, -moveDistance);
-        controls.target.addScaledVector(right, -moveDistance);
-    }
-    if (keys.d) {
-        camera.position.addScaledVector(right, moveDistance);
-        controls.target.addScaledVector(right, moveDistance);
-    }
-    if (keys.space) {
-        camera.position.y += moveDistance;
-        controls.target.y += moveDistance;
-    }
-    if (keys.shift) {
-        camera.position.y -= moveDistance;
-        controls.target.y -= moveDistance;
-    }
-}
-
 function updateCaveCharacter(delta, inputEnabled = true) {
     if (!caveCharacter || !caveMixer) return;
 
@@ -436,7 +389,7 @@ function updateCaveCharacter(delta, inputEnabled = true) {
     if (sPressed) moveInput -= 1;
 
     const isMoving = moveInput !== 0;
-    const isRunning = isMoving && (aPressed || dPressed);
+    const isRunning = isMoving && keys.shift;
 
     if (inputEnabled && caveJumpRequested && caveIsGrounded) {
         caveJumpRequested = false;
@@ -478,6 +431,26 @@ function updateCaveCharacter(delta, inputEnabled = true) {
     caveMixer.update(delta);
 }
 
+function updateThirdPersonCamera(delta) {
+    if (!caveCharacter) return;
+
+    // Distancia y altura de la cámara (estilo GTA)
+    const distance = 650;
+    const height = 350;
+
+    const offset = new THREE.Vector3(0, height, distance);
+    offset.applyQuaternion(caveCharacter.quaternion);
+
+    const targetPos = new THREE.Vector3().copy(caveCharacter.position).add(offset);
+    
+    // Seguimiento suave
+    camera.position.lerp(targetPos, 0.1);
+
+    // Mirar al personaje (un poco por encima del centro)
+    const lookAtPos = new THREE.Vector3().copy(caveCharacter.position).add(new THREE.Vector3(0, 150, 0));
+    camera.lookAt(lookAtPos);
+}
+
 function animate() {
     requestAnimationFrame(animate);
 
@@ -485,13 +458,10 @@ function animate() {
 
     const delta = clock.getDelta();
 
-    updateCaveCharacter(delta, !keys.alt);
+    // Siempre actualizar el personaje y la cámara en tercera persona
+    updateCaveCharacter(delta);
+    updateThirdPersonCamera(delta);
 
-    if (keys.alt) {
-        updateCameraMovement(delta);
-    }
-
-    controls.update();
     renderer.render(scene, camera);
 
     stats.end();
