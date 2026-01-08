@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import { USDZLoader } from 'three/examples/jsm/loaders/USDZLoader.js';
 import Stats from 'stats.js';
 
 let scene, camera, renderer, controls, stats;
@@ -15,7 +16,27 @@ const keys = {
     s: false,
     d: false,
     space: false,
-    shift: false
+    shift: false,
+    alt: false
+};
+
+let caveCharacter;
+let caveVisual;
+let caveMixer;
+let caveActions;
+let caveActiveAction;
+let caveIsJumpAnimating = false;
+let caveJumpRequested = false;
+let caveVelocityY = 0;
+let caveIsGrounded = true;
+const caveGroundY = 0;
+
+const caveMovement = {
+    walkSpeed: 220,
+    runSpeed: 360,
+    turnSpeed: 2.6,
+    gravity: -900,
+    jumpVelocity: 360
 };
 
 function init() {
@@ -91,7 +112,7 @@ function loadCityModel() {
     const mtlLoader = new MTLLoader();
     mtlLoader.setPath('assets/City Islands/');
     mtlLoader.setResourcePath('assets/City Islands/');
-    
+
     mtlLoader.load(
         'City_Islands.mtl',
         (materials) => {
@@ -105,11 +126,11 @@ function loadCityModel() {
                 'City Islands.obj',
                 (object) => {
                     cityModel = object;
-                    
+
                     const box = new THREE.Box3().setFromObject(cityModel);
                     const center = box.getCenter(new THREE.Vector3());
                     const size = box.getSize(new THREE.Vector3());
-                    
+
                     cityModel.position.x = -center.x;
                     cityModel.position.y = -box.min.y;
                     cityModel.position.z = -center.z;
@@ -129,7 +150,7 @@ function loadCityModel() {
                             const childNameLower = child.name.toLowerCase();
                             const carKeywords = ['car', 'truck', 'vehicle', 'auto', 'tire', 'rim', 'van', 'coche', 'carro'];
                             const isCar = carKeywords.some(keyword => childNameLower.includes(keyword));
-                            
+
                             if (isCar) {
                                 child.visible = false;
                                 console.log('Removed car/vehicle:', child.name);
@@ -148,6 +169,8 @@ function loadCityModel() {
                     camera.lookAt(0, 0, 0);
                     controls.target.set(0, 0, 0);
                     controls.update();
+
+                    loadCaveCharacter();
 
                     loadingElement.classList.add('hidden');
                     document.getElementById('info').classList.remove('hidden');
@@ -175,6 +198,142 @@ function loadCityModel() {
     );
 }
 
+function loadCaveCharacter() {
+    const usdzLoader = new USDZLoader();
+    const caveUrl = new URL('../Cave.usdz', import.meta.url);
+
+    usdzLoader.load(
+        caveUrl.href,
+        (object) => {
+            caveCharacter = new THREE.Group();
+            caveCharacter.name = 'CaveCharacter';
+
+            caveVisual = new THREE.Group();
+            caveVisual.name = 'CaveVisual';
+            caveCharacter.add(caveVisual);
+
+            const model = object;
+            model.name = 'CaveModel';
+
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+
+            const targetHeight = 180;
+            const height = Math.max(size.y, 0.0001);
+            const scale = targetHeight / height;
+            model.scale.setScalar(scale);
+
+            const boxScaled = new THREE.Box3().setFromObject(model);
+            const centerScaled = boxScaled.getCenter(new THREE.Vector3());
+
+            model.position.set(-centerScaled.x, -boxScaled.min.y, -centerScaled.z);
+
+            caveVisual.add(model);
+
+            caveCharacter.position.set(0, caveGroundY, 0);
+            caveCharacter.rotation.y = Math.PI;
+
+            scene.add(caveCharacter);
+
+            setupCaveAnimations();
+
+            console.log('Cave cargado!', { scale, size });
+        },
+        undefined,
+        (error) => {
+            console.error('Error cargando Cave.usdz:', error);
+        }
+    );
+}
+
+function setupCaveAnimations() {
+    caveMixer = new THREE.AnimationMixer(caveVisual);
+    caveActions = {};
+
+    const idleTimes = [0, 0.8, 1.6];
+    const idleBob = [0, 1.1, 0];
+    const idleTilt = [0, 0.015, 0];
+
+    const walkTimes = [0, 0.25, 0.5, 0.75, 1.0];
+    const walkBob = [0, 2.2, 0, 2.2, 0];
+    const walkTilt = [0, 0.05, 0, -0.05, 0];
+
+    const runTimes = [0, 0.15, 0.3, 0.45, 0.6];
+    const runBob = [0, 3.6, 0, 3.6, 0];
+    const runTilt = [0, 0.08, 0, -0.08, 0];
+
+    const jumpTimes = [0, 0.12, 0.22, 0.55];
+    const jumpSquash = [1, 0.85, 1.1, 1];
+    const jumpWide = [1, 1.12, 0.95, 1];
+    const jumpBob = [0, -1.4, 2.8, 0];
+
+    const idleClip = new THREE.AnimationClip('Idle', idleTimes[idleTimes.length - 1], [
+        new THREE.NumberKeyframeTrack('.position[y]', idleTimes, idleBob),
+        new THREE.NumberKeyframeTrack('.rotation[z]', idleTimes, idleTilt)
+    ]);
+
+    const walkClip = new THREE.AnimationClip('Walk', walkTimes[walkTimes.length - 1], [
+        new THREE.NumberKeyframeTrack('.position[y]', walkTimes, walkBob),
+        new THREE.NumberKeyframeTrack('.rotation[z]', walkTimes, walkTilt)
+    ]);
+
+    const runClip = new THREE.AnimationClip('Run', runTimes[runTimes.length - 1], [
+        new THREE.NumberKeyframeTrack('.position[y]', runTimes, runBob),
+        new THREE.NumberKeyframeTrack('.rotation[z]', runTimes, runTilt)
+    ]);
+
+    const jumpClip = new THREE.AnimationClip('Jump', jumpTimes[jumpTimes.length - 1], [
+        new THREE.NumberKeyframeTrack('.scale[y]', jumpTimes, jumpSquash),
+        new THREE.NumberKeyframeTrack('.scale[x]', jumpTimes, jumpWide),
+        new THREE.NumberKeyframeTrack('.scale[z]', jumpTimes, jumpWide),
+        new THREE.NumberKeyframeTrack('.position[y]', jumpTimes, jumpBob)
+    ]);
+
+    caveActions.idle = caveMixer.clipAction(idleClip);
+    caveActions.walk = caveMixer.clipAction(walkClip);
+    caveActions.run = caveMixer.clipAction(runClip);
+    caveActions.jump = caveMixer.clipAction(jumpClip);
+
+    caveActions.jump.loop = THREE.LoopOnce;
+    caveActions.jump.clampWhenFinished = true;
+
+    caveMixer.addEventListener('finished', (e) => {
+        if (e.action === caveActions.jump) {
+            caveIsJumpAnimating = false;
+        }
+    });
+
+    playCaveAction('idle', 0);
+}
+
+function playCaveAction(name, fadeDuration = 0.2, forceRestart = false) {
+    if (!caveActions) return;
+
+    const nextAction = caveActions[name];
+    if (!nextAction) return;
+
+    if (caveActiveAction === nextAction && !forceRestart) return;
+
+    nextAction.reset();
+    nextAction.enabled = true;
+    nextAction.setEffectiveTimeScale(1);
+    nextAction.setEffectiveWeight(1);
+
+    if (caveActiveAction) {
+        nextAction.crossFadeFrom(caveActiveAction, fadeDuration, true);
+    }
+
+    nextAction.play();
+    caveActiveAction = nextAction;
+}
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -183,22 +342,43 @@ function onWindowResize() {
 
 function onKeyDown(event) {
     const key = event.key.toLowerCase();
+
+    const preventKeys = ['w', 'a', 's', 'd', ' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+    if (preventKeys.includes(key)) event.preventDefault();
+
     if (key === 'w') keys.w = true;
     if (key === 'a') keys.a = true;
     if (key === 's') keys.s = true;
     if (key === 'd') keys.d = true;
-    if (key === ' ') keys.space = true;
+
+    if (key === ' ') {
+        if (!event.repeat && !event.altKey) {
+            caveJumpRequested = true;
+        }
+        keys.space = true;
+    }
+
+    if (key === 'alt') keys.alt = true;
+    if (event.altKey) keys.alt = true;
+
+    if (key === 'shift') keys.shift = true;
     if (event.shiftKey) keys.shift = true;
 }
 
 function onKeyUp(event) {
     const key = event.key.toLowerCase();
+
     if (key === 'w') keys.w = false;
     if (key === 'a') keys.a = false;
     if (key === 's') keys.s = false;
     if (key === 'd') keys.d = false;
     if (key === ' ') keys.space = false;
-    if (!event.shiftKey) keys.shift = false;
+
+    if (key === 'alt') keys.alt = false;
+    if (!event.altKey && key !== 'alt') keys.alt = false;
+
+    if (key === 'shift') keys.shift = false;
+    if (!event.shiftKey && key !== 'shift') keys.shift = false;
 }
 
 function updateCameraMovement(delta) {
@@ -238,16 +418,82 @@ function updateCameraMovement(delta) {
     }
 }
 
+function updateCaveCharacter(delta, inputEnabled = true) {
+    if (!caveCharacter || !caveMixer) return;
+
+    const aPressed = inputEnabled && keys.a;
+    const dPressed = inputEnabled && keys.d;
+    const wPressed = inputEnabled && keys.w;
+    const sPressed = inputEnabled && keys.s;
+
+    const turnAmount = (aPressed ? 1 : 0) - (dPressed ? 1 : 0);
+    if (turnAmount !== 0) {
+        caveCharacter.rotation.y += turnAmount * caveMovement.turnSpeed * delta;
+    }
+
+    let moveInput = 0;
+    if (wPressed) moveInput += 1;
+    if (sPressed) moveInput -= 1;
+
+    const isMoving = moveInput !== 0;
+    const isRunning = isMoving && (aPressed || dPressed);
+
+    if (inputEnabled && caveJumpRequested && caveIsGrounded) {
+        caveJumpRequested = false;
+        caveIsGrounded = false;
+        caveVelocityY = caveMovement.jumpVelocity;
+        caveIsJumpAnimating = true;
+        playCaveAction('jump', 0.05, true);
+    } else {
+        caveJumpRequested = false;
+    }
+
+    if (isMoving) {
+        const speed = isRunning ? caveMovement.runSpeed : caveMovement.walkSpeed;
+        const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(caveCharacter.quaternion);
+        direction.y = 0;
+        direction.normalize();
+        caveCharacter.position.addScaledVector(direction, moveInput * speed * delta);
+    }
+
+    if (!caveIsGrounded) {
+        caveVelocityY += caveMovement.gravity * delta;
+        caveCharacter.position.y += caveVelocityY * delta;
+
+        if (caveCharacter.position.y <= caveGroundY) {
+            caveCharacter.position.y = caveGroundY;
+            caveVelocityY = 0;
+            caveIsGrounded = true;
+        }
+    }
+
+    if (!caveIsJumpAnimating) {
+        if (isMoving) {
+            playCaveAction(isRunning ? 'run' : 'walk', 0.12);
+        } else {
+            playCaveAction('idle', 0.12);
+        }
+    }
+
+    caveMixer.update(delta);
+}
+
 function animate() {
     requestAnimationFrame(animate);
-    
+
     stats.begin();
-    
+
     const delta = clock.getDelta();
-    updateCameraMovement(delta);
+
+    updateCaveCharacter(delta, !keys.alt);
+
+    if (keys.alt) {
+        updateCameraMovement(delta);
+    }
+
     controls.update();
     renderer.render(scene, camera);
-    
+
     stats.end();
 }
 

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   publicDir: 'public',
+  assetsInclude: ['**/*.usdz'],
   server: {
     port: 5173,
     open: true
